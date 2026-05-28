@@ -390,158 +390,188 @@ function generateDynamicFallbackAnalogues(inn: string, country: string): any[] {
 
 // 1. Resolve INN (Active Ingredient) from Drug Name
 app.get("/api/resolve-inn", async (req, res) => {
-  const name = req.query.name as string;
-  if (!name) {
-    return res.status(400).json({ error: "Missing 'name' query parameter" });
-  }
-
-  const cacheKey = name.toLowerCase().trim();
-
-  // A. Quick Cache Check
-  if (resolvedInnsCache[cacheKey]) {
-    console.log(`[Heisberg Cache] Hit cache for INN resolution of: "${cacheKey}"`);
-    return res.json(resolvedInnsCache[cacheKey]);
-  }
-
-  // B. Exact Local Dictionary Lookup to completely save quota
-  const matchedLocal = LOCAL_DRUG_INDEX.find(item => 
-    item.searchTermMatch.some(term => cacheKey === term) ||
-    cacheKey === item.inn.toLowerCase()
-  );
-
-  if (matchedLocal) {
-    console.log(`[Heisberg LocalIndex] Direct matched: "${cacheKey}" -> "${matchedLocal.inn}"`);
-    const val = {
-      searchTerm: name,
-      rxnormInn: matchedLocal.inn,
-      inn: matchedLocal.inn,
-      commonNames: matchedLocal.commonNames,
-      drugClass: matchedLocal.drugClass,
-      description: matchedLocal.description
-    };
-    resolvedInnsCache[cacheKey] = val;
-    return res.json(val);
-  }
-
-  // C. Fallback Lookup to RxNorm to get ingredient first
-  let rxnormInn: string | null = null;
-  let rxnormConcepts: any[] = [];
   try {
-    const rxnormUrl = `https://rxnav.nlm.nih.gov/REST/drugs.json?name=${encodeURIComponent(name)}`;
-    const response = await fetch(rxnormUrl);
-    if (response.ok) {
-      const data = await response.json();
-      const conceptGroups = data.drugGroup?.conceptGroup || [];
-      for (const group of conceptGroups) {
-        if (group.conceptProperties && group.conceptProperties.length > 0) {
-          rxnormConcepts.push(...group.conceptProperties);
-        }
-      }
-      const ingredientConcept = rxnormConcepts.find(c => c.tty === "IN");
-      if (ingredientConcept) {
-        rxnormInn = ingredientConcept.name;
-      } else if (rxnormConcepts.length > 0) {
-        rxnormInn = rxnormConcepts[0].name;
-      }
+    const name = req.query.name as string;
+    if (!name) {
+      return res.status(400).json({ error: "Missing 'name' query parameter" });
     }
-  } catch (rxnormError) {
-    console.warn("RxNorm search failed. Falling back to dynamic standard.", rxnormError);
-  }
 
-  // D. Query Gemini standard indexer with complete exception safety (Handles 429 gently)
-  try {
-    const ai = getGemini();
-    const prompt = `
-      You are the core pharmaceutical indexer for Heisberg, an advanced medical analogue search system.
-      The user searched for the drug term: "${name}".
-      We found RxNorm ingredient suggestion: "${rxnormInn || 'None'}".
-      
-      Determine the official generic active ingredient name (International Nonproprietary Name - INN / Generic Name) for this drug term.
-      Provide the correct active ingredient name, alternative common/brand names, its primary therapeutic drug class, and a concise explanation of what the drug does.
-      
-      Be chemically precise. If the input is already an active ingredient, standardize it to its common medical name (e.g., Acetylsalicylic acid / Aspirin, Acetaminophen / Paracetamol).
-    `;
+    const cacheKey = name.toLowerCase().trim();
 
-    const modelResponse = await ai.models.generateContent({
-      model: "gemini-3.5-flash",
-      contents: prompt,
-      config: {
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
-            inn: { 
-              type: Type.STRING, 
-              description: "The standardized official generic active ingredient name (INN) in English, e.g. Acetylsalicylic acid" 
-            },
-            commonNames: { 
-              type: Type.ARRAY, 
-              items: { type: Type.STRING }, 
-              description: "Common alternative names or synonyms, e.g., ['Aspirin', 'ASA', 'Paracetamol', 'Acetaminophen']" 
-            },
-            drugClass: { 
-              type: Type.STRING, 
-              description: "Primary drug group or therapeutic category, e.g. NSAID, Analgesics, Proton Pump Inhibitor, HMG-CoA Reductase Inhibitor" 
-            },
-            description: { 
-              type: Type.STRING, 
-              description: "A concise 1-2 sentence medical summary of what this drug is used for." 
-            }
-          },
-          required: ["inn", "commonNames", "drugClass", "description"]
-        }
-      }
-    });
+    // A. Quick Cache Check
+    if (resolvedInnsCache[cacheKey]) {
+      console.log(`[Heisberg Cache] Hit cache for INN resolution of: "${cacheKey}"`);
+      return res.json(resolvedInnsCache[cacheKey]);
+    }
 
-    const resultText = modelResponse.text?.trim() || "{}";
-    const parsedResult = JSON.parse(resultText);
-
-    const val = {
-      searchTerm: name,
-      rxnormInn,
-      inn: parsedResult.inn,
-      commonNames: parsedResult.commonNames || [],
-      drugClass: parsedResult.drugClass,
-      description: parsedResult.description
-    };
-    resolvedInnsCache[cacheKey] = val;
-    return res.json(val);
-
-  } catch (geminiError: any) {
-    console.warn(`[Heisberg Warning] Gemini API resolution failed (code 429/connection). Invoking local high-fidelity fallback. Error: ${geminiError?.message || geminiError}`);
-
-    // Standardize matching using broad search in local index if Gemini fails
-    const matchedLocalBroad = LOCAL_DRUG_INDEX.find(item => 
-      item.searchTermMatch.some(term => cacheKey.includes(term)) ||
-      (rxnormInn && rxnormInn.toLowerCase().includes(item.inn.toLowerCase())) ||
-      cacheKey.includes(item.inn.toLowerCase())
+    // B. Exact Local Dictionary Lookup to completely save quota
+    const matchedLocal = LOCAL_DRUG_INDEX.find(item => 
+      item.searchTermMatch.some(term => cacheKey === term) ||
+      cacheKey === item.inn.toLowerCase()
     );
 
-    if (matchedLocalBroad) {
+    if (matchedLocal) {
+      console.log(`[Heisberg LocalIndex] Direct matched: "${cacheKey}" -> "${matchedLocal.inn}"`);
       const val = {
         searchTerm: name,
-        rxnormInn,
-        inn: matchedLocalBroad.inn,
-        commonNames: matchedLocalBroad.commonNames,
-        drugClass: matchedLocalBroad.drugClass,
-        description: matchedLocalBroad.description
+        rxnormInn: matchedLocal.inn,
+        inn: matchedLocal.inn,
+        commonNames: matchedLocal.commonNames,
+        drugClass: matchedLocal.drugClass,
+        description: matchedLocal.description
       };
       resolvedInnsCache[cacheKey] = val;
       return res.json(val);
     }
 
-    // Dynamic clean fallback response to never break user search
-    const fallbackInn = rxnormInn ? rxnormInn : (name.charAt(0).toUpperCase() + name.slice(1).toLowerCase());
-    const val = {
-      searchTerm: name,
-      rxnormInn: rxnormInn,
-      inn: fallbackInn,
-      commonNames: [name, fallbackInn],
-      drugClass: name.endsWith("cillin") ? "Penicillin Antibiotic" : name.endsWith("olol") ? "Beta-Blocker" : name.endsWith("statin") ? "Statin (Cholesterol lowering)" : "General Therapeutic Agent",
-      description: `Active drug substance. Prescribed under international classification for therapeutic medical treatment.`
-    };
-    resolvedInnsCache[cacheKey] = val;
-    return res.json(val);
+    // C. Fallback Lookup to RxNorm to get ingredient first
+    let rxnormInn: string | null = null;
+    let rxnormConcepts: any[] = [];
+    try {
+      const rxnormUrl = `https://rxnav.nlm.nih.gov/REST/drugs.json?name=${encodeURIComponent(name)}`;
+      const response = await fetch(rxnormUrl);
+      if (response.ok) {
+        const data = await response.json();
+        const conceptGroups = data.drugGroup?.conceptGroup || [];
+        for (const group of conceptGroups) {
+          if (group.conceptProperties && group.conceptProperties.length > 0) {
+            rxnormConcepts.push(...group.conceptProperties);
+          }
+        }
+        const ingredientConcept = rxnormConcepts.find(c => c.tty === "IN");
+        if (ingredientConcept) {
+          rxnormInn = ingredientConcept.name;
+        } else if (rxnormConcepts.length > 0) {
+          rxnormInn = rxnormConcepts[0].name;
+        }
+      }
+    } catch (rxnormError) {
+      console.warn("RxNorm search failed. Falling back to dynamic standard.", rxnormError);
+    }
+
+    // D. Query Gemini standard indexer with complete exception safety (Handles 429 gently)
+    try {
+      const ai = getGemini();
+      const prompt = `
+        You are the core pharmaceutical indexer for Heisberg, an advanced medical analogue search system.
+        The user searched for the drug term: "${name}".
+        We found RxNorm ingredient suggestion: "${rxnormInn || 'None'}".
+        
+        Determine the official generic active ingredient name (International Nonproprietary Name - INN / Generic Name) for this drug term.
+        Provide the correct active ingredient name, alternative common/brand names, its primary therapeutic drug class, and a concise explanation of what the drug does.
+        
+        Be chemically precise. If the input is already an active ingredient, standardize it to its common medical name (e.g., Acetylsalicylic acid / Aspirin, Acetaminophen / Paracetamol).
+      `;
+
+      const modelResponse = await ai.models.generateContent({
+        model: "gemini-3.5-flash",
+        contents: prompt,
+        config: {
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: Type.OBJECT,
+            properties: {
+              inn: { 
+                type: Type.STRING, 
+                description: "The standardized official generic active ingredient name (INN) in English, e.g. Acetylsalicylic acid" 
+              },
+              commonNames: { 
+                type: Type.ARRAY, 
+                items: { type: Type.STRING }, 
+                description: "Common alternative names or synonyms, e.g., ['Aspirin', 'ASA', 'Paracetamol', 'Acetaminophen']" 
+              },
+              drugClass: { 
+                type: Type.STRING, 
+                description: "Primary drug group or therapeutic category, e.g. NSAID, Analgesics, Proton Pump Inhibitor, HMG-CoA Reductase Inhibitor" 
+              },
+              description: { 
+                type: Type.STRING, 
+                description: "A concise 1-2 sentence medical summary of what this drug is used for." 
+              }
+            },
+            required: ["inn", "commonNames", "drugClass", "description"]
+          }
+        }
+      });
+
+      const resultText = modelResponse.text?.trim() || "{}";
+      const parsedResult = JSON.parse(resultText);
+
+      const val = {
+        searchTerm: name,
+        rxnormInn,
+        inn: parsedResult.inn,
+        commonNames: parsedResult.commonNames || [],
+        drugClass: parsedResult.drugClass,
+        description: parsedResult.description
+      };
+      resolvedInnsCache[cacheKey] = val;
+      return res.json(val);
+
+    } catch (geminiError: any) {
+      console.warn(`[Heisberg Warning] Gemini API resolution failed (code 429/connection). Invoking local high-fidelity fallback. Error: ${geminiError?.message || geminiError}`);
+
+      // Standardize matching using broad search in local index if Gemini fails
+      const matchedLocalBroad = LOCAL_DRUG_INDEX.find(item => 
+        item.searchTermMatch.some(term => cacheKey.includes(term)) ||
+        (rxnormInn && rxnormInn.toLowerCase().includes(item.inn.toLowerCase())) ||
+        cacheKey.includes(item.inn.toLowerCase())
+      );
+
+      if (matchedLocalBroad) {
+        const val = {
+          searchTerm: name,
+          rxnormInn,
+          inn: matchedLocalBroad.inn,
+          commonNames: matchedLocalBroad.commonNames,
+          drugClass: matchedLocalBroad.drugClass,
+          description: matchedLocalBroad.description
+        };
+        resolvedInnsCache[cacheKey] = val;
+        return res.json(val);
+      }
+
+      // Dynamic clean fallback response to never break user search
+      const fallbackInn = rxnormInn ? rxnormInn : (name.charAt(0).toUpperCase() + name.slice(1).toLowerCase());
+      const val = {
+        searchTerm: name,
+        rxnormInn: rxnormInn,
+        inn: fallbackInn,
+        commonNames: [name, fallbackInn],
+        drugClass: name.endsWith("cillin") ? "Penicillin Antibiotic" : name.endsWith("olol") ? "Beta-Blocker" : name.endsWith("statin") ? "Statin (Cholesterol lowering)" : "General Therapeutic Agent",
+        description: `Active drug substance. Prescribed under international classification for therapeutic medical treatment.`
+      };
+      resolvedInnsCache[cacheKey] = val;
+      return res.json(val);
+    }
+  } catch (outerError: any) {
+    console.error("Top-level resolve-inn API catch-all Error:", outerError);
+    // Reliable zero-dependency local fallback on top-level catch to guarantee NO 500 error!
+    try {
+      const name = req.query.name as string || "Unknown";
+      const cacheKey = name.toLowerCase().trim();
+      
+      const fallbackInn = name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
+      const val = {
+        searchTerm: name,
+        rxnormInn: null,
+        inn: fallbackInn,
+        commonNames: [name, fallbackInn],
+        drugClass: "General Therapeutic Agent",
+        description: `Active drug substance. Prescribed under international medical classification for comparative treatment.`
+      };
+      resolvedInnsCache[cacheKey] = val;
+      return res.json(val);
+    } catch (fallbackFailed) {
+      return res.status(200).json({
+        searchTerm: "Unknown",
+        rxnormInn: null,
+        inn: "Unknown Generic",
+        commonNames: ["Unknown"],
+        drugClass: "General Therapeutic",
+        description: "Pharmaceutical active compound classification details."
+      });
+    }
   }
 });
 
