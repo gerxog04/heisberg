@@ -6,34 +6,24 @@ exports.handler = async (event, context) => {
     'Content-Type': 'application/json'
   };
   
-  // CORS preflight
   if (event.httpMethod === 'OPTIONS') {
     return { statusCode: 204, headers, body: '' };
   }
   
   try {
-    // Определяем, какой эндпоинт вызвали
     const urlPath = event.path;
     const queryParams = event.queryStringParameters || {};
     
-    // 🔥 Эндпоинт: /api/resolve-inn?name=...
-    if (urlPath.includes('/resolve-inn') && event.httpMethod === 'GET') {
+    // Эндпоинт: /api/resolve-inn?name=...
+    if (urlPath.includes('/resolve-inn')) {
       const drugName = queryParams.name;
-      
       if (!drugName) {
-        return {
-          statusCode: 400,
-          headers,
-          body: JSON.stringify({ error: 'No drug name provided' })
-        };
+        return { statusCode: 400, headers, body: JSON.stringify({ error: 'No drug name provided' }) };
       }
       
-      // Вызываем RxNorm API (не требует ключа)
-      const rxnormUrl = `https://rxnav.nlm.nih.gov/REST/drugs.json?name=${encodeURIComponent(drugName)}`;
-      const response = await fetch(rxnormUrl);
+      const response = await fetch(`https://rxnav.nlm.nih.gov/REST/drugs.json?name=${encodeURIComponent(drugName)}`);
       const data = await response.json();
       
-      // Парсим INN
       let inn = null;
       if (data.drugGroup?.conceptGroup) {
         for (const group of data.drugGroup.conceptGroup) {
@@ -44,30 +34,38 @@ exports.handler = async (event, context) => {
         }
       }
       
-      return {
-        statusCode: 200,
-        headers,
-        body: JSON.stringify({ 
-          success: true, 
-          inn: inn || drugName,
-          found: !!inn 
-        })
-      };
+      return { statusCode: 200, headers, body: JSON.stringify({ success: true, inn: inn || drugName, found: !!inn }) };
     }
     
-    // Если эндпоинт не найден
-    return {
-      statusCode: 404,
-      headers,
-      body: JSON.stringify({ error: 'Endpoint not found' })
-    };
+    // 🔥 Эндпоинт: /api/fda-analogues?ingredient=...
+    if (urlPath.includes('/fda-analogues')) {
+      const ingredient = queryParams.ingredient;
+      if (!ingredient) {
+        return { statusCode: 400, headers, body: JSON.stringify({ error: 'No ingredient provided' }) };
+      }
+      
+      // Поиск аналогов в FDA
+      const fdaUrl = `https://api.fda.gov/drug/label.json?search=active_ingredient:${encodeURIComponent(ingredient)}&limit=10`;
+      const response = await fetch(fdaUrl);
+      const data = await response.json();
+      
+      if (!data.results) {
+        return { statusCode: 200, headers, body: JSON.stringify({ analogues: [] }) };
+      }
+      
+      const analogues = data.results.map(result => ({
+        name: result.openfda?.brand_name?.[0] || 'Unknown',
+        manufacturer: result.openfda?.manufacturer_name?.[0] || 'Unknown',
+        dosage: result.dosage_form_and_strength?.[0] || 'Not specified'
+      }));
+      
+      return { statusCode: 200, headers, body: JSON.stringify({ analogues }) };
+    }
+    
+    return { statusCode: 404, headers, body: JSON.stringify({ error: 'Endpoint not found' }) };
     
   } catch (error) {
     console.error('Function error:', error);
-    return {
-      statusCode: 500,
-      headers,
-      body: JSON.stringify({ error: 'Internal server error', details: error.message })
-    };
+    return { statusCode: 500, headers, body: JSON.stringify({ error: 'Internal server error' }) };
   }
 };
