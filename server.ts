@@ -10,6 +10,18 @@ const PORT = 3000;
 
 app.use(express.json());
 
+// Resilient request path normalization middleware for serverless routing engines (like Netlify/Vercel)
+app.use((req, res, next) => {
+  if (req.url.startsWith("/.netlify/functions/api/v2/")) {
+    req.url = req.url.replace("/.netlify/functions/api/v2/", "/v2/");
+  } else if (req.url.startsWith("/.netlify/functions/api/")) {
+    req.url = req.url.replace("/.netlify/functions/api/", "/api/");
+  } else if (req.url === "/.netlify/functions/api") {
+    req.url = "/api";
+  }
+  next();
+});
+
 // Lazy-initialized Gemini Client to prevent crash if GEMINI_API_KEY is not configured yet
 let aiClient: GoogleGenAI | null = null;
 function getGemini(): GoogleGenAI {
