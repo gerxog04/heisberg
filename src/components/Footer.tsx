@@ -16,7 +16,7 @@ export default function Footer() {
           <span>🇪🇺 ema europe</span>
         </div>
         <p className="text-zinc-600 max-w-sm text-xs mt-1 leading-relaxed">
-          heisberg is for exploration and comparison. always check with a licensed healthcare practitioner before changing or substituting any prescriptions.
+          startorigin is for exploration and comparison. always check with a licensed healthcare practitioner before changing or substituting any prescriptions.
         </p>
       </div>
 
@@ -24,16 +24,7 @@ export default function Footer() {
         <div className="flex items-center gap-1.5 text-zinc-650">
           <span>made with</span>
           <Heart className="w-3.5 h-3.5 text-rose-500/80 fill-rose-500/5" aria-label="heart" />
-          <span>by</span>
-          <a
-            href="https://startorigin.me/profile/mavebo"
-            id="author-link"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-zinc-500 hover:text-[#0071e3] font-medium transition-all"
-          >
-            @mavebo
-          </a>
+          <span>by startorigin</span>
         </div>
 
         {/* Version info - Interactive link triggers Apple-style roadmap panel */}

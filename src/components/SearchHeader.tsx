@@ -41,7 +41,7 @@ export default function SearchHeader({
             transition={{ duration: 0.4 }}
             id="brand-title"
           >
-            heisberg
+            startorigin
           </motion.h1>
           <motion.button
             type="button"
@@ -52,7 +52,7 @@ export default function SearchHeader({
             transition={{ delay: 0.15, duration: 0.4 }}
             id="brand-slogan"
           >
-            where? heisberg.
+            where? startorigin.
           </motion.button>
         </div>
       </header>
@@ -204,7 +204,7 @@ export default function SearchHeader({
                 <div className="flex items-center gap-2">
                   <HelpCircle className="w-4.5 h-4.5 text-[#0071e3]" />
                   <h4 className="text-base font-bold text-white tracking-tight lowercase">
-                    about heisberg
+                    about startorigin
                   </h4>
                 </div>
                 <button
