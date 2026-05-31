@@ -29,13 +29,11 @@ export default function App() {
     setAnalogueItems([]);
     setEuFhirEntries([]);
 
-    // Smooth scroll to the results/loader section immediately on click
     setTimeout(() => {
       document.getElementById("results-anchor")?.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 100);
 
     try {
-      // Step 1: Resolve the brand name or drug query to an Active Ingredient (INN)
       const resolveUrl = `/api/resolve-inn?name=${encodeURIComponent(drugName.trim())}`;
       const resolveRes = await fetch(resolveUrl);
       
@@ -49,7 +47,6 @@ export default function App() {
 
       const targetInn = resolvedData.inn;
 
-      // Step 2: Query drug analogues depending on selected country
       if (selectedCountry === "USA") {
         const usaUrl = `/api/analogues/usa?inn=${encodeURIComponent(targetInn)}`;
         const usaRes = await fetch(usaUrl);
@@ -63,7 +60,6 @@ export default function App() {
         const canadaData = await canadaRes.json();
         setAnalogueItems(canadaData.results || []);
       } else if (selectedCountry === "EU") {
-        // European medicines API
         const euUrl = `/v2/RegulatedAuthorization?status=active&region=EU&ingredient=${encodeURIComponent(targetInn)}`;
         const euRes = await fetch(euUrl);
         if (!euRes.ok) throw new Error("failed to extract marketing authorizations from ema.");
@@ -75,9 +71,14 @@ export default function App() {
         if (!serbiaRes.ok) throw new Error("failed to extract analogues from serbian medicine register.");
         const serbiaData = await serbiaRes.json();
         setAnalogueItems(serbiaData.results || []);
+      } else if (selectedCountry === "Singapore") {
+        const singaporeUrl = `/api/analogues/singapore?inn=${encodeURIComponent(targetInn)}`;
+        const singaporeRes = await fetch(singaporeUrl);
+        if (!singaporeRes.ok) throw new Error("failed to extract analogues from singapore hsa.");
+        const singaporeData = await singaporeRes.json();
+        setAnalogueItems(singaporeData.results || []);
       }
 
-      // Smooth scroll again after elements populate to guarantee full focus
       setTimeout(() => {
         document.getElementById("results-anchor")?.scrollIntoView({ behavior: "smooth", block: "start" });
       }, 200);
@@ -86,7 +87,6 @@ export default function App() {
       console.error("Search error:", err);
       setError(err.message || "something went wrong. let's try typing it again.");
       
-      // Auto-scroll to error message container
       setTimeout(() => {
         document.getElementById("results-anchor")?.scrollIntoView({ behavior: "smooth", block: "start" });
       }, 100);
@@ -95,16 +95,15 @@ export default function App() {
     }
   };
 
+
+
   return (
     <div className="min-h-screen bg-black text-zinc-100 flex flex-col justify-between selection:bg-zinc-850 selection:text-white relative overflow-hidden font-sans lowercase" id="app-root-view">
-      {/* Visual elegant minimalist background accents */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[350px] bg-zinc-900/10 rounded-full blur-[120px] pointer-events-none" />
 
-      {/* Main container */}
       <main className="flex-grow w-full max-w-[960px] mx-auto px-5 sm:px-8 py-10 md:py-16 space-y-10 relative z-10">
         
         <div className="space-y-10">
-          {/* Brand Search Controls Header */}
           <SearchHeader
             drugName={drugName}
             setDrugName={setDrugName}
@@ -114,11 +113,9 @@ export default function App() {
             loading={loading}
           />
 
-          {/* Results Interface */}
           <div id="results-anchor">
             <AnimatePresence mode="wait">
               
-              {/* Loading sequence */}
               {loading && (
                 <motion.div
                   key="search-loading"
@@ -126,10 +123,8 @@ export default function App() {
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.98 }}
                   className="flex flex-col items-center justify-center py-24 space-y-5"
-                  id="search-loading-state"
                 >
                   <div className="relative flex items-center justify-center">
-                    {/* Apple-style clean spinner circles */}
                     <div className="w-11 h-11 rounded-full border-2 border-zinc-900 border-t-[#0071e3] animate-spin" />
                     <Pill className="w-4.5 h-4.5 text-zinc-500 absolute" />
                   </div>
@@ -140,7 +135,6 @@ export default function App() {
                 </motion.div>
               )}
 
-              {/* Error notifications */}
               {error && !loading && (
                 <motion.div
                   key="search-error"
@@ -148,7 +142,6 @@ export default function App() {
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: -8, scale: 0.99 }}
                   className="border border-[#2c2c2e] bg-[#1c1c1e]/40 backdrop-blur-md rounded-3xl p-6 sm:p-7 flex flex-col sm:flex-row gap-4 items-start max-w-xl mx-auto"
-                  id="search-error-state"
                 >
                   <div className="p-2.5 bg-zinc-900 text-zinc-400 rounded-xl border border-zinc-800 shrink-0">
                     <AlertOctagon className="w-5 h-5" />
@@ -166,7 +159,6 @@ export default function App() {
                 </motion.div>
               )}
 
-              {/* Empty landing prompt */}
               {!profile && !loading && !error && (
                 <motion.div
                   key="empty-intro"
@@ -174,7 +166,6 @@ export default function App() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -8 }}
                   className="max-w-3xl mx-auto bg-[#1c1c1e]/20 backdrop-blur-md border border-[#2c2c2e]/60 rounded-3xl p-6 sm:p-9 space-y-8 my-2 relative overflow-hidden shadow-sm"
-                  id="landing-prompt"
                 >
                   <div className="space-y-3">
                     <div className="flex items-center gap-1.5">
@@ -189,11 +180,10 @@ export default function App() {
                     </h3>
                     
                     <p className="text-zinc-400 text-sm leading-relaxed font-light">
-                      different countries use different commercial brand names for the exact same medical pill. type any familiar brand above. we’ll decode its main active formula and list the exact equivalents you can buy locally.
+                      different countries use different commercial brand names for the exact same medical pill. type any familiar brand above. we'll decode its main active formula and list the exact equivalents you can buy locally.
                     </p>
                   </div>
 
-                  {/* Steps without icons */}
                   <div className="border-t border-zinc-900 pt-6 grid grid-cols-1 md:grid-cols-3 gap-4 text-left">
                     <div className="space-y-1 bg-[#1c1c1e]/40 p-4 rounded-xl border border-[#2c2c2e]/40">
                       <span className="text-[9px] text-zinc-650 block">step 01</span>
@@ -216,7 +206,6 @@ export default function App() {
                 </motion.div>
               )}
 
-              {/* Render Resolved Profile Cards & Analogues */}
               {profile && !loading && (
                 <motion.div
                   key="results-present"
@@ -224,14 +213,11 @@ export default function App() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.35 }}
                   className="grid grid-cols-1 lg:grid-cols-12 gap-8 border-t border-zinc-900/60 pt-8"
-                  id="resolved-results-box"
                 >
-                  {/* 1. Substance Formula Profile Card */}
                   <div className="lg:col-span-5">
                     <DrugProfileCard profile={profile} />
                   </div>
 
-                  {/* 2. Registered analogues list */}
                   <div className="lg:col-span-7">
                     <AnalogueList
                       country={selectedCountry}
@@ -248,7 +234,6 @@ export default function App() {
 
       </main>
 
-      {/* Footer */}
       <Footer />
     </div>
   );

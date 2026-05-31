@@ -16,4 +16,4 @@ export interface DrugAnalogue {
   strength: string;
 }
 
-export type SelectedCountry = "USA" | "Canada" | "EU" | "Serbia";
+export type SelectedCountry = "USA" | "Canada" | "EU" | "Serbia" | "Singapore";

@@ -28,10 +28,11 @@ export default function SearchHeader({
     { id: "Canada", name: "canada", emoji: "🇨🇦" },
     { id: "EU", name: "europe", emoji: "🇪🇺" },
     { id: "Serbia", name: "serbia", emoji: "🇷🇸" },
+    { id: "Singapore", name: "singapore", emoji: "🇸🇬" },
   ];
 
   return (
-    <div className="w-full space-y-8" id="search-container">
+    <div className="w-full space-y-8 relative z-20" id="search-container">
       {/* Header Section */}
       <header className="flex flex-col items-center justify-center text-center gap-1.5 pb-6 border-b border-zinc-900/40">
         <div className="space-y-1">
@@ -57,19 +58,19 @@ export default function SearchHeader({
           </motion.button>
         </div>
       </header>
-
+ 
       {/* Search Interface with Apple-style satisfying container */}
       <motion.form 
         onSubmit={onSearch}
-        className="space-y-6 bg-zinc-900/20 backdrop-blur-md p-6 sm:p-7 rounded-3xl border border-zinc-900/80 relative overflow-hidden"
+        className="space-y-6 bg-zinc-900/20 backdrop-blur-md p-6 sm:p-7 rounded-3xl border border-zinc-900/80 relative overflow-hidden z-10"
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.05, duration: 0.4 }}
         id="search-form"
       >
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-end">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-end">
           {/* Drug Name Input */}
-          <div className="lg:col-span-6 w-full space-y-2">
+          <div className="lg:col-span-5 w-full space-y-2">
             <label className="text-[11px] text-zinc-400 font-medium block pl-1 lowercase font-sans">
               type a pill or brand name
             </label>
@@ -97,37 +98,28 @@ export default function SearchHeader({
             </div>
           </div>
 
-          {/* Destination Region Selection - Premium Apple Segmented Control */}
-          <div className="lg:col-span-4 w-full space-y-2">
+          {/* Destination Region Selection - Beautiful Segmented Tabs */}
+          <div className="lg:col-span-5 w-full space-y-2" id="country-select-container">
             <label className="text-[11px] text-zinc-400 font-medium block pl-1 lowercase font-sans">
               target territory
             </label>
-            <div className="grid grid-cols-3 bg-[#1c1c1e]/60 border border-[#2c2c2e] p-1 rounded-2xl shadow-sm">
+            <div className="flex bg-[#1c1c1e]/60 border border-[#2c2c2e] rounded-2xl p-1 gap-1">
               {regions.map((region) => {
-                const isActive = selectedCountry === region.id;
+                const isSelected = selectedCountry === region.id;
                 return (
                   <button
                     key={region.id}
                     type="button"
-                    onClick={() => {
-                      if (!loading) setSelectedCountry(region.id);
-                    }}
+                    onClick={() => setSelectedCountry(region.id)}
                     disabled={loading}
-                    className={`relative py-2 rounded-xl text-xs font-medium transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer select-none ${
-                      isActive 
-                        ? "bg-[#2c2c2e] text-white shadow-sm font-semibold" 
-                        : "text-zinc-500 hover:text-zinc-300"
+                    className={`flex-1 flex flex-col items-center justify-center py-2 px-1 rounded-xl text-[10px] font-sans lowercase transition-all cursor-pointer disabled:opacity-50 ${
+                      isSelected 
+                        ? "bg-[#2c2c2e] text-white font-medium shadow-sm" 
+                        : "text-zinc-500 hover:text-zinc-350"
                     }`}
                   >
-                    <span className="text-sm saturate-75">{region.emoji}</span>
-                    <span className="lowercase font-sans">{region.name}</span>
-                    {isActive && (
-                      <motion.div
-                        layoutId="activeRegionGlow"
-                        className="absolute inset-0 border border-zinc-700/30 rounded-xl pointer-events-none"
-                        transition={{ type: "spring", stiffness: 350, damping: 28 }}
-                      />
-                    )}
+                    <span className="text-sm leading-none mb-0.5 saturate-75">{region.emoji}</span>
+                    <span className="leading-tight text-[11px]">{region.name}</span>
                   </button>
                 );
               })}
@@ -142,7 +134,7 @@ export default function SearchHeader({
               disabled={loading || !drugName.trim()}
               whileHover={{ scale: loading ? 1 : 1.01 }}
               whileTap={{ scale: loading ? 1 : 0.99 }}
-              className="w-full bg-[#0071e3] hover:bg-[#147ldc] text-white py-3 px-6 rounded-2xl font-medium flex items-center justify-center gap-1.5 cursor-pointer transition-all disabled:opacity-40 disabled:cursor-not-allowed text-xs lowercase font-sans leading-none shadow-md"
+              className="w-full bg-[#0071e3] hover:bg-[#147ldc] text-white py-3.5 px-6 rounded-2xl font-medium flex items-center justify-center gap-1.5 cursor-pointer transition-all disabled:opacity-40 disabled:cursor-not-allowed text-xs lowercase font-sans leading-none shadow-md"
             >
               {loading ? (
                 <>
@@ -228,7 +220,7 @@ export default function SearchHeader({
                   it's free and simple. give it a try!
                 </p>
                 <div className="bg-zinc-900/60 border border-zinc-800/65 rounded-xl p-3.5 text-zinc-500 text-xs font-sans leading-relaxed lowercase">
-                  (for now you can search just in the usa, canada, EU and serbia. we're currently working to add more territories.)
+                  (for now you can search just in the usa, canada, EU, serbia and singapore. we're currently working to add more territories.)
                 </div>
               </div>
 

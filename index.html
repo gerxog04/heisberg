@@ -4,6 +4,22 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>startorigin</title>
+    <!-- PWA configuration -->
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="icon" href="https://startorigin.me/icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="https://startorigin.me/icon.svg" />
+    <meta name="theme-color" content="#0a0a0c" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then(reg => console.log('ServiceWorker registration successful with scope: ', reg.scope))
+            .catch(err => console.error('ServiceWorker registration failed: ', err));
+        });
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>
