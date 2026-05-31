@@ -69,6 +69,12 @@ export default function App() {
         if (!euRes.ok) throw new Error("failed to extract marketing authorizations from ema.");
         const euData = await euRes.json();
         setEuFhirEntries(euData.entry || []);
+      } else if (selectedCountry === "Serbia") {
+        const serbiaUrl = `/api/analogues/serbia?inn=${encodeURIComponent(targetInn)}`;
+        const serbiaRes = await fetch(serbiaUrl);
+        if (!serbiaRes.ok) throw new Error("failed to extract analogues from serbian medicine register.");
+        const serbiaData = await serbiaRes.json();
+        setAnalogueItems(serbiaData.results || []);
       }
 
       // Smooth scroll again after elements populate to guarantee full focus

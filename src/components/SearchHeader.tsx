@@ -27,6 +27,7 @@ export default function SearchHeader({
     { id: "USA", name: "usa", emoji: "🇺🇸" },
     { id: "Canada", name: "canada", emoji: "🇨🇦" },
     { id: "EU", name: "europe", emoji: "🇪🇺" },
+    { id: "Serbia", name: "serbia", emoji: "🇷🇸" },
   ];
 
   return (
@@ -227,7 +228,7 @@ export default function SearchHeader({
                   it's free and simple. give it a try!
                 </p>
                 <div className="bg-zinc-900/60 border border-zinc-800/65 rounded-xl p-3.5 text-zinc-500 text-xs font-sans leading-relaxed lowercase">
-                  (for now you can search just in the usa, canada and EU. we're currently working to add more territories.)
+                  (for now you can search just in the usa, canada, EU and serbia. we're currently working to add more territories.)
                 </div>
               </div>
 
