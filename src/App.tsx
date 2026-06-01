@@ -165,43 +165,22 @@ export default function App() {
                   initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -8 }}
-                  className="max-w-3xl mx-auto bg-[#1c1c1e]/20 backdrop-blur-md border border-[#2c2c2e]/60 rounded-3xl p-6 sm:p-9 space-y-8 my-2 relative overflow-hidden shadow-sm"
+                  className="max-w-2xl mx-auto text-center space-y-6 py-12 px-6"
                 >
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-[10px] text-zinc-400 bg-zinc-900 border border-zinc-800 px-2 py-0.5 rounded-xl font-medium font-sans">
-                        🌎 smart search
-                      </span>
-                      <span className="text-zinc-650 font-sans text-[10px]">calca medicine bridge</span>
-                    </div>
-
-                    <h3 className="text-xl sm:text-2xl font-bold text-white tracking-tight leading-normal">
-                      traveling? find identical medicines in usa, canada, or europe instantly.
-                    </h3>
-                    
-                    <p className="text-zinc-400 text-sm leading-relaxed font-light">
-                      different countries use different commercial brand names for the exact same medical pill. type any familiar brand above. we'll decode its main active formula and list the exact equivalents you can buy locally.
-                    </p>
-                  </div>
-
-                  <div className="border-t border-zinc-900 pt-6 grid grid-cols-1 md:grid-cols-3 gap-4 text-left">
-                    <div className="space-y-1 bg-[#1c1c1e]/40 p-4 rounded-xl border border-[#2c2c2e]/40">
-                      <span className="text-[9px] text-zinc-650 block">step 01</span>
-                      <span className="text-xs text-zinc-300 font-semibold block">search brand</span>
-                      <span className="text-[11px] text-zinc-500 leading-normal block">type any commercial brand name (e.g., advil, motrin, voltaren).</span>
-                    </div>
-                    
-                    <div className="space-y-1 bg-[#1c1c1e]/40 p-4 rounded-xl border border-[#2c2c2e]/40">
-                      <span className="text-[9px] text-zinc-650 block">step 02</span>
-                      <span className="text-xs text-zinc-300 font-semibold block">decode active formula</span>
-                      <span className="text-[11px] text-zinc-500 leading-normal block">we immediately extract the exact active compound (e.g., ibuprofen).</span>
-                    </div>
-
-                    <div className="space-y-1 bg-[#1c1c1e]/40 p-4 rounded-xl border border-[#2c2c2e]/40">
-                      <span className="text-[9px] text-zinc-650 block">step 03</span>
-                      <span className="text-xs text-zinc-300 font-semibold block">find equivalents</span>
-                      <span className="text-[11px] text-zinc-500 leading-normal block">browse approved identical local alternatives in your target region.</span>
-                    </div>
+                  <h3 className="text-xl sm:text-2xl font-light text-white/90 tracking-tight leading-relaxed">
+                    traveling? search any familiar country-of-origin brand above to find identical active ingredients and approved local substitutes.
+                  </h3>
+                  
+                  <div className="flex justify-center items-center gap-6 text-[10px] tracking-wider uppercase text-zinc-650 font-mono pt-4 border-t border-zinc-900/40">
+                    <span>usa</span>
+                    <span>•</span>
+                    <span>canada</span>
+                    <span>•</span>
+                    <span>europe</span>
+                    <span>•</span>
+                    <span>serbia</span>
+                    <span>•</span>
+                    <span>singapore</span>
                   </div>
                 </motion.div>
               )}

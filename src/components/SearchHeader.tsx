@@ -34,11 +34,11 @@ export default function SearchHeader({
   return (
     <div className="w-full space-y-8 relative z-20" id="search-container">
       {/* Header Section */}
-      <header className="flex flex-col items-center justify-center text-center gap-1.5 pb-6 border-b border-zinc-900/40">
-        <div className="space-y-1">
+      <header className="flex flex-col items-center justify-center text-center gap-1.5 pb-2">
+        <div className="space-y-0.5">
           <motion.h1 
-            className="text-3xl font-bold tracking-tight lowercase text-white font-sans"
-            initial={{ opacity: 0, y: -8 }}
+            className="text-2xl font-light tracking-widest lowercase text-zinc-100 font-sans"
+            initial={{ opacity: 0, y: -6 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
             id="brand-title"
@@ -48,7 +48,7 @@ export default function SearchHeader({
           <motion.button
             type="button"
             onClick={() => setInfoOpen(true)}
-            className="text-zinc-500 hover:text-zinc-300 text-[13px] font-sans lowercase tracking-tight cursor-pointer hover:underline transition-all block mx-auto py-0.5 px-2 rounded-lg hover:bg-zinc-900/40"
+            className="text-zinc-600 hover:text-zinc-400 text-xs font-sans lowercase tracking-wide cursor-pointer hover:underline transition-all block mx-auto py-0.5"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.15, duration: 0.4 }}
@@ -59,30 +59,30 @@ export default function SearchHeader({
         </div>
       </header>
  
-      {/* Search Interface with Apple-style satisfying container */}
+      {/* Search Interface - Soft & Minimalist */}
       <motion.form 
         onSubmit={onSearch}
-        className="space-y-6 bg-zinc-900/20 backdrop-blur-md p-6 sm:p-7 rounded-3xl border border-zinc-900/80 relative overflow-hidden z-10"
-        initial={{ opacity: 0, y: 12 }}
+        className="space-y-6 bg-zinc-950/20 p-5 sm:p-7 rounded-[28px] border border-zinc-900/30 relative overflow-hidden z-10"
+        initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.05, duration: 0.4 }}
         id="search-form"
       >
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-end">
-          {/* Drug Name Input */}
-          <div className="lg:col-span-5 w-full space-y-2">
-            <label className="text-[11px] text-zinc-400 font-medium block pl-1 lowercase font-sans">
-              type a pill or brand name
+          {/* Drug Name Input - Soft Rounded */}
+          <div className="lg:col-span-5 w-full space-y-1.5">
+            <label className="text-[11px] text-zinc-500 font-light block pl-1 lowercase font-sans">
+              pill or brand name
             </label>
             <div className="relative group">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-zinc-500 group-focus-within:text-[#0071e3] transition-colors" />
+              <Search className="absolute left-4.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-zinc-600 group-focus-within:text-[#0071e3] transition-colors" />
               <input
                 type="text"
                 id="drug-input"
                 value={drugName}
                 onChange={(e) => setDrugName(e.target.value.toLowerCase())}
                 placeholder="advil, tylenol, aspirin..."
-                className="w-full bg-[#1c1c1e]/60 border border-[#2c2c2e] focus:border-zinc-700 rounded-2xl py-3 pl-11 pr-11 text-base text-white outline-none transition-all placeholder-zinc-700 font-sans lowercase shadow-sm"
+                className="w-full bg-zinc-900/40 border border-zinc-850/60 focus:border-zinc-800 rounded-2xl py-3 pl-11 pr-11 text-sm text-zinc-200 outline-none transition-all placeholder-zinc-700 font-sans lowercase"
                 disabled={loading}
                 required
               />
@@ -90,7 +90,7 @@ export default function SearchHeader({
                 <button
                   type="button"
                   onClick={() => setDrugName("")}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-white p-1 rounded-full hover:bg-zinc-800 transition-colors"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-600 hover:text-white p-1 rounded-full hover:bg-zinc-800 transition-colors"
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>
@@ -98,12 +98,12 @@ export default function SearchHeader({
             </div>
           </div>
 
-          {/* Destination Region Selection - Beautiful Segmented Tabs */}
-          <div className="lg:col-span-5 w-full space-y-2" id="country-select-container">
-            <label className="text-[11px] text-zinc-400 font-medium block pl-1 lowercase font-sans">
+          {/* Destination Region Selection - Soft Tabs */}
+          <div className="lg:col-span-5 w-full space-y-1.5" id="country-select-container">
+            <label className="text-[11px] text-zinc-500 font-light block pl-1 lowercase font-sans">
               target territory
             </label>
-            <div className="flex bg-[#1c1c1e]/60 border border-[#2c2c2e] rounded-2xl p-1 gap-1">
+            <div className="flex bg-zinc-900/45 border border-zinc-850/60 rounded-2xl p-1 gap-1">
               {regions.map((region) => {
                 const isSelected = selectedCountry === region.id;
                 return (
@@ -114,19 +114,19 @@ export default function SearchHeader({
                     disabled={loading}
                     className={`flex-1 flex flex-col items-center justify-center py-2 px-1 rounded-xl text-[10px] font-sans lowercase transition-all cursor-pointer disabled:opacity-50 ${
                       isSelected 
-                        ? "bg-[#2c2c2e] text-white font-medium shadow-sm" 
-                        : "text-zinc-500 hover:text-zinc-350"
+                        ? "bg-zinc-805 text-white/90 font-medium" 
+                        : "text-zinc-600 hover:text-zinc-400"
                     }`}
                   >
-                    <span className="text-sm leading-none mb-0.5 saturate-75">{region.emoji}</span>
-                    <span className="leading-tight text-[11px]">{region.name}</span>
+                    <span className="text-xs leading-none mb-0.5 saturate-50">{region.emoji}</span>
+                    <span className="leading-tight text-[10px]">{region.name}</span>
                   </button>
                 );
               })}
             </div>
           </div>
 
-          {/* Search Trigger (Apple Premium Blue accent) */}
+          {/* Search Trigger */}
           <div className="lg:col-span-2 w-full">
             <motion.button
               type="submit"
@@ -134,16 +134,16 @@ export default function SearchHeader({
               disabled={loading || !drugName.trim()}
               whileHover={{ scale: loading ? 1 : 1.01 }}
               whileTap={{ scale: loading ? 1 : 0.99 }}
-              className="w-full bg-[#0071e3] hover:bg-[#147ldc] text-white py-3.5 px-6 rounded-2xl font-medium flex items-center justify-center gap-1.5 cursor-pointer transition-all disabled:opacity-40 disabled:cursor-not-allowed text-xs lowercase font-sans leading-none shadow-md"
+              className="w-full bg-[#0071e3]/80 hover:bg-[#0071e3] text-white py-3 px-6 rounded-2xl font-light flex items-center justify-center gap-1.5 cursor-pointer transition-all disabled:opacity-30 disabled:cursor-not-allowed text-xs lowercase font-sans leading-none shadow-sm"
             >
               {loading ? (
                 <>
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  <Loader2 className="w-3 animate-spin" />
                   <span>searching</span>
                 </>
               ) : (
                 <>
-                  <Search className="w-3.5 h-3.5" />
+                  <Search className="w-3" />
                   <span>search</span>
                 </>
               )}
@@ -151,10 +151,10 @@ export default function SearchHeader({
           </div>
         </div>
 
-        {/* Suggestion tags below styling */}
-        <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-zinc-900/60" id="popular-suggestions">
-          <span className="text-[10px] font-mono text-zinc-500 mr-1 flex items-center gap-1 lowercase">
-            <Globe2 className="w-3 h-3 text-zinc-650" /> quick try:
+        {/* Suggestion tags as Soft Pill Bulbs */}
+        <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-zinc-900/30" id="popular-suggestions">
+          <span className="text-[10px] font-mono text-zinc-600 mr-1 flex items-center gap-1 lowercase">
+            <Globe2 className="w-3 h-3 text-zinc-700" /> try:
           </span>
           <div className="flex flex-wrap gap-1.5">
             {popularSuggestions.map((item) => (
@@ -163,7 +163,7 @@ export default function SearchHeader({
                 type="button"
                 id={`suggest-${item.toLowerCase()}`}
                 onClick={() => setDrugName(item)}
-                className="text-xs bg-[#1c1c1e]/40 hover:bg-[#1c1c1e] hover:text-white border border-[#2c2c2e] text-zinc-500 px-3 py-1.5 rounded-xl transition-all cursor-pointer font-sans lowercase shadow-sm"
+                className="text-xs bg-zinc-900/15 hover:bg-zinc-900/30 border border-zinc-900/25 text-zinc-500 hover:text-zinc-300 px-3 py-1 rounded-full transition-all cursor-pointer font-sans lowercase"
               >
                 {item}
               </button>
