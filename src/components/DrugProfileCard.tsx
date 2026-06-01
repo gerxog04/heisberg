@@ -27,6 +27,21 @@ export default function DrugProfileCard({ profile }: DrugProfileCardProps) {
           <span className="text-zinc-600 font-sans text-[10px] lowercase">active formula</span>
         </div>
 
+        {profile.imageUrl && (
+          <div className="relative w-full h-44 rounded-2xl overflow-hidden border border-zinc-800 bg-zinc-950/40 select-none">
+            <img
+              src={profile.imageUrl}
+              alt={profile.inn?.toLowerCase() || "pharmaceutical pill representation"}
+              referrerPolicy="no-referrer"
+              className="w-full h-full object-cover saturate-75 opacity-90 transition-all duration-300 hover:scale-105"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
+            <span className="absolute bottom-3 right-3 text-[9px] text-zinc-400 font-sans backdrop-blur-md bg-black/60 px-2.5 py-0.5 rounded-md border border-zinc-900">
+              google search preview
+            </span>
+          </div>
+        )}
+
         <div className="flex items-start gap-4">
           <div className="w-11 h-11 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center shrink-0 text-zinc-400 shadow-sm">
             <Pill className="w-5 h-5" />

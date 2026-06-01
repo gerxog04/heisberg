@@ -1,5 +1,5 @@
 {
-  "name": "startorigin",
+  "name": "calca",
   "description": "Find drug analogues across USA, Canada, EU, and Serbia by active ingredient (INN) search.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]

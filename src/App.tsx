@@ -172,7 +172,7 @@ export default function App() {
                       <span className="text-[10px] text-zinc-400 bg-zinc-900 border border-zinc-800 px-2 py-0.5 rounded-xl font-medium font-sans">
                         🌎 smart search
                       </span>
-                      <span className="text-zinc-650 font-sans text-[10px]">startorigin medicine bridge</span>
+                      <span className="text-zinc-650 font-sans text-[10px]">calca medicine bridge</span>
                     </div>
 
                     <h3 className="text-xl sm:text-2xl font-bold text-white tracking-tight leading-normal">

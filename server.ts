@@ -584,6 +584,9 @@ app.get("/api/resolve-inn", async (req, res) => {
         Determine the official generic active ingredient name (International Nonproprietary Name - INN / Generic Name) for this drug term.
         Provide the correct active ingredient name, alternative common/brand names, its primary therapeutic drug class, and a concise explanation of what the drug does.
         
+        Additionally, use the Google Search tool to find a high-quality, publicly accessible, hotlinkable image URL for this drug/ingredient (a photo of standard tablets, packaging, blister packs, or its chemical structure from Wikimedia Commons, NIH, openFDA, RxList, Wikipedia, etc.).
+        The URL must be a valid direct image URL, e.g., ending with .jpg, .png, or from wikimedia.org. Avoid broken links or dynamic HTML page URLs. If no hotlinkable image is found, output a reliable default placeholder URL (e.g., https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=600&h=400&q=80).
+
         Be chemically precise. If the input is already an active ingredient, standardize it to its common medical name (e.g., Acetylsalicylic acid / Aspirin, Acetaminophen / Paracetamol).
       `;
 
@@ -591,6 +594,7 @@ app.get("/api/resolve-inn", async (req, res) => {
         model: "gemini-3.5-flash",
         contents: prompt,
         config: {
+          tools: [{ googleSearch: {} }],
           responseMimeType: "application/json",
           responseSchema: {
             type: Type.OBJECT,
@@ -611,6 +615,10 @@ app.get("/api/resolve-inn", async (req, res) => {
               description: { 
                 type: Type.STRING, 
                 description: "A concise 1-2 sentence medical summary of what this drug is used for." 
+              },
+              imageUrl: {
+                type: Type.STRING,
+                description: "A direct public image URL of the pharmaceutical pill, blister pack, chemical structure, or capsule. Found using search tool or a reliable wikimedia image."
               }
             },
             required: ["inn", "commonNames", "drugClass", "description"]
@@ -627,7 +635,8 @@ app.get("/api/resolve-inn", async (req, res) => {
         inn: parsedResult.inn,
         commonNames: parsedResult.commonNames || [],
         drugClass: parsedResult.drugClass,
-        description: parsedResult.description
+        description: parsedResult.description,
+        imageUrl: parsedResult.imageUrl || "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=600&h=400&q=80"
       };
       resolvedInnsCache[cacheKey] = val;
       return res.json(val);
@@ -649,7 +658,8 @@ app.get("/api/resolve-inn", async (req, res) => {
           inn: matchedLocalBroad.inn,
           commonNames: matchedLocalBroad.commonNames,
           drugClass: matchedLocalBroad.drugClass,
-          description: matchedLocalBroad.description
+          description: matchedLocalBroad.description,
+          imageUrl: "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=600&h=400&q=80"
         };
         resolvedInnsCache[cacheKey] = val;
         return res.json(val);
@@ -663,7 +673,8 @@ app.get("/api/resolve-inn", async (req, res) => {
         inn: fallbackInn,
         commonNames: [name, fallbackInn],
         drugClass: name.endsWith("cillin") ? "Penicillin Antibiotic" : name.endsWith("olol") ? "Beta-Blocker" : name.endsWith("statin") ? "Statin (Cholesterol lowering)" : "General Therapeutic Agent",
-        description: `Active drug substance. Prescribed under international classification for therapeutic medical treatment.`
+        description: `Active drug substance. Prescribed under international classification for therapeutic medical treatment.`,
+        imageUrl: "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=600&h=400&q=80"
       };
       resolvedInnsCache[cacheKey] = val;
       return res.json(val);
@@ -682,7 +693,8 @@ app.get("/api/resolve-inn", async (req, res) => {
         inn: fallbackInn,
         commonNames: [name, fallbackInn],
         drugClass: "General Therapeutic Agent",
-        description: `Active drug substance. Prescribed under international medical classification for comparative treatment.`
+        description: `Active drug substance. Prescribed under international medical classification for comparative treatment.`,
+        imageUrl: "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=600&h=400&q=80"
       };
       resolvedInnsCache[cacheKey] = val;
       return res.json(val);
@@ -693,7 +705,8 @@ app.get("/api/resolve-inn", async (req, res) => {
         inn: "Unknown Generic",
         commonNames: ["Unknown"],
         drugClass: "General Therapeutic",
-        description: "Pharmaceutical active compound classification details."
+        description: "Pharmaceutical active compound classification details.",
+        imageUrl: "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=600&h=400&q=80"
       });
     }
   }

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'startorigin-v1';
+const CACHE_NAME = 'calca-v1';
 const ASSETS = [
   '/',
   '/index.html',

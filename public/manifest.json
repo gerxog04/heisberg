@@ -1,7 +1,7 @@
 {
-  "name": "startorigin",
-  "short_name": "startorigin",
-  "description": "where? startorigin. Pill and drug analogue finder across countries.",
+  "name": "calca",
+  "short_name": "calca",
+  "description": "where? calca. Pill and drug analogue finder across countries.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0a0a0c",

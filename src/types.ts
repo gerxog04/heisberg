@@ -4,6 +4,7 @@ export interface DrugProfile {
   commonNames: string[];
   drugClass: string;
   description: string;
+  imageUrl?: string;
 }
 
 export interface DrugAnalogue {
