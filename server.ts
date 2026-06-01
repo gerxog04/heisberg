@@ -50,6 +50,68 @@ const euAnaloguesCache: { [key: string]: any } = {};
 const serbiaAnaloguesCache: { [key: string]: any[] } = {};
 const singaporeAnaloguesCache: { [key: string]: any[] } = {};
 
+// Google Search enrichment for medicine list brand images
+async function enrichAnaloguesWithImages(analogues: any[], country: string): Promise<any[]> {
+  if (!analogues || analogues.length === 0) return [];
+  
+  // Only enrich up to 6 brand entries to prevent high latency or large payloads
+  const itemsToEnrich = analogues.slice(0, 6);
+  const brandNames = itemsToEnrich.map(item => item.brandName || item.productName || "Unknown medicine");
+  
+  try {
+    const ai = getGemini();
+    const prompt = `
+      You are an expert consumer pharmaceutical packaging image provider.
+      For each of the following real medicine brands marketed in ${country}:
+      ${JSON.stringify(brandNames)}
+
+      Using the Google Search tool, search the web to find a real, direct, active, and publicly hotlinkable image URL (like from Wikipedia, Wikimedia Commons, NIH, pharma corporation, pharmaceutical directories, openFDA, RxList, capsules, or Unsplash) showing the actual physical box packaging, blister pack, bottle, or pill/tablet of this medicine brand.
+      
+      Return a JSON mapping of each input brand name to its found direct image URL.
+      You MUST include all inputted brand names in the keys.
+      If a hotlinked image is unavailable, supply a beautiful neutral medicine package placeholder (e.g. https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=300&h=200&q=80).
+    `;
+
+    const response = await ai.models.generateContent({
+      model: "gemini-3.5-flash",
+      contents: prompt,
+      config: {
+        tools: [{ googleSearch: {} }],
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          additionalProperties: { type: Type.STRING }
+        }
+      }
+    });
+
+    const mapping = JSON.parse(response.text?.trim() || "{}");
+    return analogues.map((item) => {
+      const bName = item.brandName || item.productName || "";
+      const matchedUrl = mapping[bName] || mapping[bName.toLowerCase()] || mapping[bName.toUpperCase()];
+      return {
+        ...item,
+        imageUrl: matchedUrl || "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=300&h=200&q=80"
+      };
+    });
+  } catch (err) {
+    console.warn("[Heisberg Warning] Failed to fetch search images for brands. Supplying static premium placeholders instead.", err);
+    return analogues.map((item, idx) => {
+      const photos = [
+        "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=300&h=200&q=80",
+        "https://images.unsplash.com/photo-1471864190281-a93a3070b6de?auto=format&fit=crop&w=300&h=200&q=80",
+        "https://images.unsplash.com/photo-1550572017-edd951b55104?auto=format&fit=crop&w=300&h=200&q=80",
+        "https://images.unsplash.com/photo-1628771065518-0d82f1938462?auto=format&fit=crop&w=300&h=200&q=80",
+        "https://images.unsplash.com/photo-1585435557343-3b092031a831?auto=format&fit=crop&w=300&h=200&q=80"
+      ];
+      return {
+        ...item,
+        imageUrl: photos[idx % photos.length]
+      };
+    });
+  }
+}
+
 interface LocalDrugEntry {
   searchTermMatch: string[];
   inn: string;
@@ -729,8 +791,9 @@ app.get("/api/analogues/usa", async (req, res) => {
   // Check local index first
   const matchedLocal = LOCAL_DRUG_INDEX.find(item => item.inn.toLowerCase() === cacheKey);
   if (matchedLocal) {
-    usaAnaloguesCache[cacheKey] = matchedLocal.analogues.USA;
-    return res.json({ results: matchedLocal.analogues.USA });
+    const enriched = await enrichAnaloguesWithImages(matchedLocal.analogues.USA, "USA");
+    usaAnaloguesCache[cacheKey] = enriched;
+    return res.json({ results: enriched });
   }
 
   try {
@@ -797,13 +860,15 @@ app.get("/api/analogues/usa", async (req, res) => {
       }
     }
 
-    usaAnaloguesCache[cacheKey] = fdaResults;
-    res.json({ results: fdaResults });
+    const enriched = await enrichAnaloguesWithImages(fdaResults, "USA");
+    usaAnaloguesCache[cacheKey] = enriched;
+    res.json({ results: enriched });
 
   } catch (error: any) {
     console.error("USA analogues search error:", error);
     const mockRes = generateDynamicFallbackAnalogues(inn, "USA");
-    res.json({ results: mockRes });
+    const enrichedMock = await enrichAnaloguesWithImages(mockRes, "USA");
+    res.json({ results: enrichedMock });
   }
 });
 
@@ -824,8 +889,9 @@ app.get("/api/analogues/canada", async (req, res) => {
   // Check local index first
   const matchedLocal = LOCAL_DRUG_INDEX.find(item => item.inn.toLowerCase() === cacheKey);
   if (matchedLocal) {
-    canadaAnaloguesCache[cacheKey] = matchedLocal.analogues.Canada;
-    return res.json({ results: matchedLocal.analogues.Canada });
+    const enriched = await enrichAnaloguesWithImages(matchedLocal.analogues.Canada, "Canada");
+    canadaAnaloguesCache[cacheKey] = enriched;
+    return res.json({ results: enriched });
   }
 
   try {
@@ -892,13 +958,15 @@ app.get("/api/analogues/canada", async (req, res) => {
       }
     }
 
-    canadaAnaloguesCache[cacheKey] = canadaResults;
-    res.json({ results: canadaResults });
+    const enriched = await enrichAnaloguesWithImages(canadaResults, "Canada");
+    canadaAnaloguesCache[cacheKey] = enriched;
+    res.json({ results: enriched });
 
   } catch (error: any) {
     console.error("Canada analogues search error:", error);
     const mockRes = generateDynamicFallbackAnalogues(inn, "Canada");
-    res.json({ results: mockRes });
+    const enrichedMock = await enrichAnaloguesWithImages(mockRes, "Canada");
+    res.json({ results: enrichedMock });
   }
 });
 
@@ -952,7 +1020,7 @@ app.get("/v2/RegulatedAuthorization", async (req, res) => {
           ],
           subject: [
             {
-              display: entry.productName
+              display: entry.productName || entry.brandName
             }
           ],
           holder: {
@@ -972,6 +1040,10 @@ app.get("/v2/RegulatedAuthorization", async (req, res) => {
             {
               url: "http://heisberg.eu/fhir/StructureDefinition/countries",
               valueString: entry.countries ? (Array.isArray(entry.countries) ? entry.countries.join(", ") : entry.countries) : "Centrally Authorized"
+            },
+            {
+              url: "http://heisberg.eu/fhir/StructureDefinition/image-url",
+              valueString: entry.imageUrl
             }
           ]
         }
@@ -987,7 +1059,8 @@ app.get("/v2/RegulatedAuthorization", async (req, res) => {
   // Check local index first
   const matchedLocal = LOCAL_DRUG_INDEX.find(item => item.inn.toLowerCase() === cacheKey);
   if (matchedLocal) {
-    const fhir = wrapInFhir(matchedLocal.analogues.EU);
+    const enriched = await enrichAnaloguesWithImages(matchedLocal.analogues.EU, "Europe");
+    const fhir = wrapInFhir(enriched);
     euAnaloguesCache[cacheKey] = fhir;
     return res.json(fhir);
   }
@@ -1033,14 +1106,16 @@ app.get("/v2/RegulatedAuthorization", async (req, res) => {
       entries = generateDynamicFallbackAnalogues(ingredient, "EU");
     }
 
-    const fhirBundle = wrapInFhir(entries);
+    const enriched = await enrichAnaloguesWithImages(entries, "Europe");
+    const fhirBundle = wrapInFhir(enriched);
     euAnaloguesCache[cacheKey] = fhirBundle;
     res.json(fhirBundle);
 
   } catch (error: any) {
     console.error("EU RegulatedAuthorization search error:", error);
     const mockEntries = generateDynamicFallbackAnalogues(ingredient, "EU");
-    const fhirBundle = wrapInFhir(mockEntries);
+    const enrichedMock = await enrichAnaloguesWithImages(mockEntries, "Europe");
+    const fhirBundle = wrapInFhir(enrichedMock);
     res.json(fhirBundle);
   }
 });
@@ -1063,8 +1138,9 @@ app.get("/api/analogues/serbia", async (req, res) => {
   // Check local index first
   const matchedLocal = LOCAL_DRUG_INDEX.find(item => item.inn.toLowerCase() === cacheKey);
   if (matchedLocal && matchedLocal.analogues.Serbia) {
-    serbiaAnaloguesCache[cacheKey] = matchedLocal.analogues.Serbia;
-    return res.json({ results: matchedLocal.analogues.Serbia });
+    const enriched = await enrichAnaloguesWithImages(matchedLocal.analogues.Serbia, "Serbia");
+    serbiaAnaloguesCache[cacheKey] = enriched;
+    return res.json({ results: enriched });
   }
 
   try {
@@ -1191,13 +1267,15 @@ app.get("/api/analogues/serbia", async (req, res) => {
       serbiaResults = generateDynamicFallbackAnalogues(inn, "Serbia");
     }
 
-    serbiaAnaloguesCache[cacheKey] = serbiaResults;
-    res.json({ results: serbiaResults });
+    const enriched = await enrichAnaloguesWithImages(serbiaResults, "Serbia");
+    serbiaAnaloguesCache[cacheKey] = enriched;
+    res.json({ results: enriched });
 
   } catch (error: any) {
     console.error("Serbia analogues search error:", error);
     const mockRes = generateDynamicFallbackAnalogues(inn, "Serbia");
-    res.json({ results: mockRes });
+    const enrichedMock = await enrichAnaloguesWithImages(mockRes, "Serbia");
+    res.json({ results: enrichedMock });
   }
 });
 
@@ -1219,8 +1297,9 @@ app.get("/api/analogues/singapore", async (req, res) => {
   // Check local index first
   const matchedLocal = LOCAL_DRUG_INDEX.find(item => item.inn.toLowerCase() === cacheKey);
   if (matchedLocal && matchedLocal.analogues.Singapore) {
-    singaporeAnaloguesCache[cacheKey] = matchedLocal.analogues.Singapore;
-    return res.json({ results: matchedLocal.analogues.Singapore });
+    const enriched = await enrichAnaloguesWithImages(matchedLocal.analogues.Singapore, "Singapore");
+    singaporeAnaloguesCache[cacheKey] = enriched;
+    return res.json({ results: enriched });
   }
 
   try {
@@ -1316,13 +1395,15 @@ app.get("/api/analogues/singapore", async (req, res) => {
       singaporeResults = generateDynamicFallbackAnalogues(inn, "Singapore");
     }
 
-    singaporeAnaloguesCache[cacheKey] = singaporeResults;
-    res.json({ results: singaporeResults });
+    const enriched = await enrichAnaloguesWithImages(singaporeResults, "Singapore");
+    singaporeAnaloguesCache[cacheKey] = enriched;
+    res.json({ results: enriched });
 
   } catch (error: any) {
     console.error("Singapore analogues search error:", error);
     const mockRes = generateDynamicFallbackAnalogues(inn, "Singapore");
-    res.json({ results: mockRes });
+    const enrichedMock = await enrichAnaloguesWithImages(mockRes, "Singapore");
+    res.json({ results: enrichedMock });
   }
 });
 

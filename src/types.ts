@@ -15,6 +15,7 @@ export interface DrugAnalogue {
   dosageForm: string;
   route: string;
   strength: string;
+  imageUrl?: string;
 }
 
 export type SelectedCountry = "USA" | "Canada" | "EU" | "Serbia" | "Singapore";

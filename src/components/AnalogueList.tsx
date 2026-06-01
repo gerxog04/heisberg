@@ -107,6 +107,22 @@ export default function AnalogueList({ country, analogueItems, euFhirEntries }: 
                       </span>
                     </div>
 
+                    {item.imageUrl && (
+                      <div className="relative w-full h-32 rounded-xl overflow-hidden border border-zinc-900 bg-zinc-950/45 select-none shrink-0">
+                        <img
+                          src={item.imageUrl}
+                          alt={item.brandName?.toLowerCase()}
+                          referrerPolicy="no-referrer"
+                          className="w-full h-full object-cover saturate-[0.80] opacity-90 transition-all duration-300 hover:scale-105"
+                          onError={(e) => {
+                            // If the hotlinked URL fails/is blocked, supply beautiful default medicine imagery
+                            (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=300&h=200&q=80";
+                          }}
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none" />
+                      </div>
+                    )}
+
                     {/* Secondary values */}
                     <div className="space-y-2 border-t border-zinc-900/50 pt-3">
                       <div className="flex items-center gap-2 text-xs border-b border-zinc-900/10 pb-1">
@@ -148,6 +164,7 @@ export default function AnalogueList({ country, analogueItems, euFhirEntries }: 
                 const res = item.resource;
                 const dosageFormExt = res?.extension?.find((e: any) => e.url.includes("dosage-form"))?.valueString || "Formulation";
                 const countriesExt = res?.extension?.find((e: any) => e.url.includes("countries"))?.valueString || "European Union";
+                const imageUrlExt = res?.extension?.find((e: any) => e.url.includes("image-url"))?.valueString;
                 const authNumber = res?.identifier?.[0]?.value || "EU/1/XX/XXX";
                 const authorizedBrand = res.subject?.[0]?.display || "Unknown Authorized Brand";
                 const holderName = res.holder?.display || "Unknown Manufacturer";
@@ -179,6 +196,21 @@ export default function AnalogueList({ country, analogueItems, euFhirEntries }: 
                           <ShieldCheck className="w-3 h-3" /> active
                         </span>
                       </div>
+
+                      {imageUrlExt && (
+                        <div className="relative w-full h-32 rounded-xl overflow-hidden border border-zinc-900 bg-zinc-950/45 select-none shrink-0">
+                          <img
+                            src={imageUrlExt}
+                            alt={authorizedBrand.toLowerCase()}
+                            referrerPolicy="no-referrer"
+                            className="w-full h-full object-cover saturate-[0.80] opacity-90 transition-all duration-300 hover:scale-105"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=300&h=200&q=80";
+                            }}
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none" />
+                        </div>
+                      )}
 
                       {/* Secondary values */}
                       <div className="space-y-2 border-t border-zinc-900/50 pt-3">
