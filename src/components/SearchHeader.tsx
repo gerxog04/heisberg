@@ -134,7 +134,7 @@ export default function SearchHeader({
               disabled={loading || !drugName.trim()}
               whileHover={{ scale: loading ? 1 : 1.01 }}
               whileTap={{ scale: loading ? 1 : 0.99 }}
-              className="w-full bg-[#0071e3] hover:bg-[#147ldc] text-white py-3.5 px-6 rounded-2xl font-medium flex items-center justify-center gap-1.5 cursor-pointer transition-all disabled:opacity-40 disabled:cursor-not-allowed text-xs lowercase font-sans leading-none shadow-md"
+              className="w-full bg-[#0071e3] hover:bg-[#1471dc] text-white py-3.5 px-6 rounded-2xl font-medium flex items-center justify-center gap-1.5 cursor-pointer transition-all disabled:opacity-40 disabled:cursor-not-allowed text-xs lowercase font-sans leading-none shadow-md"
             >
               {loading ? (
                 <>

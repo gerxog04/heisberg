@@ -12,12 +12,16 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js')
-            .then(reg => console.log('ServiceWorker registration successful with scope: ', reg.scope))
-            .catch(err => console.error('ServiceWorker registration failed: ', err));
-        });
+      try {
+        if ('serviceWorker' in navigator && window.isSecureContext) {
+          window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/sw.js')
+              .then(reg => console.log('ServiceWorker registration successful'))
+              .catch(err => console.warn('ServiceWorker registration failed', err));
+          });
+        }
+      } catch (e) {
+        console.warn('Service worker registration bypassed:', e);
       }
     </script>
   </head>

@@ -67,8 +67,7 @@ async function enrichAnaloguesWithImages(analogues: any[], country: string): Pro
 
       Using the Google Search tool, search the web to find a real, direct, active, and publicly hotlinkable image URL (like from Wikipedia, Wikimedia Commons, NIH, pharma corporation, pharmaceutical directories, openFDA, RxList, capsules, or Unsplash) showing the actual physical box packaging, blister pack, bottle, or pill/tablet of this medicine brand.
       
-      Return a JSON mapping of each input brand name to its found direct image URL.
-      You MUST include all inputted brand names in the keys.
+      Return a JSON list of objects containing "brandName" (exactly matching the requested medicine brand name) and "imageUrl" (the found direct image URL).
       If a hotlinked image is unavailable, supply a beautiful neutral medicine package placeholder (e.g. https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=300&h=200&q=80).
     `;
 
@@ -79,16 +78,42 @@ async function enrichAnaloguesWithImages(analogues: any[], country: string): Pro
         tools: [{ googleSearch: {} }],
         responseMimeType: "application/json",
         responseSchema: {
-          type: Type.OBJECT,
-          additionalProperties: { type: Type.STRING }
+          type: Type.ARRAY,
+          items: {
+            type: Type.OBJECT,
+            properties: {
+              brandName: {
+                type: Type.STRING,
+                description: "The name of the medicine brand"
+              },
+              imageUrl: {
+                type: Type.STRING,
+                description: "The direct hotlinkable packaging or pill image URL"
+              }
+            },
+            required: ["brandName", "imageUrl"]
+          }
         }
       }
     });
 
-    const mapping = JSON.parse(response.text?.trim() || "{}");
+    const mapping: Record<string, string> = {};
+    try {
+      const list = JSON.parse(response.text?.trim() || "[]");
+      if (Array.isArray(list)) {
+        for (const entry of list) {
+          if (entry && typeof entry === "object" && entry.brandName && entry.imageUrl) {
+            mapping[entry.brandName.toLowerCase()] = entry.imageUrl;
+          }
+        }
+      }
+    } catch (parseErr) {
+      console.warn("[Heisberg] Failed to parse JSON response for images.", parseErr);
+    }
+
     return analogues.map((item) => {
-      const bName = item.brandName || item.productName || "";
-      const matchedUrl = mapping[bName] || mapping[bName.toLowerCase()] || mapping[bName.toUpperCase()];
+      const bName = (item.brandName || item.productName || "").toLowerCase();
+      const matchedUrl = mapping[bName];
       return {
         ...item,
         imageUrl: matchedUrl || "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=300&h=200&q=80"
