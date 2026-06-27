@@ -1,9 +1,11 @@
 import React, { useState } from "react";
-import { Heart, X, Sparkles, BookOpen } from "lucide-react";
+import { Heart, X, Sparkles, BookOpen, AlertCircle, Code } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
 export default function Footer() {
   const [modalOpen, setModalOpen] = useState(false);
+  const [developerModalOpen, setDeveloperModalOpen] = useState(false);
+  const [disclaimerModalOpen, setDisclaimerModalOpen] = useState(false);
 
   return (
     <footer className="mt-20 pt-8 pb-12 border-t border-zinc-900 flex flex-col md:flex-row justify-between items-center gap-6 text-[11px] text-zinc-500 font-sans lowercase" id="footer-main">
@@ -24,19 +26,137 @@ export default function Footer() {
         <div className="flex items-center gap-1.5 text-zinc-650">
           <span>made with</span>
           <Heart className="w-3.5 h-3.5 text-rose-500/80 fill-rose-500/5" aria-label="heart" />
-          <span>by calca</span>
+          <span>by</span>
+          <button
+            onClick={() => setDeveloperModalOpen(true)}
+            className="text-zinc-400 hover:text-white underline decoration-zinc-700 underline-offset-2 transition-colors cursor-pointer"
+            id="developer-trigger-btn"
+          >
+            kodewt
+          </button>
         </div>
 
-        {/* Version info - Interactive link triggers Apple-style roadmap panel */}
-        <button
-          onClick={() => setModalOpen(true)}
-          className="text-[10px] text-zinc-600 hover:text-white transition-all bg-[#1c1c1e]/45 hover:bg-[#1c1c1e] px-2.5 py-1 rounded-lg border border-[#2c2c2e]/70 cursor-pointer flex items-center gap-1.5 lowercase"
-          id="version-trigger-btn"
-        >
-          <Sparkles className="w-3 h-3 text-[#34c759]" />
-          <span>version 1.1</span>
-        </button>
+        <div className="flex items-center gap-2">
+          {/* Disclaimer Trigger Button */}
+          <button
+            onClick={() => setDisclaimerModalOpen(true)}
+            className="text-[10px] text-zinc-600 hover:text-white transition-all bg-[#1c1c1e]/45 hover:bg-[#1c1c1e] px-2.5 py-1 rounded-lg border border-[#2c2c2e]/70 cursor-pointer flex items-center gap-1 lowercase"
+            id="disclaimer-trigger-btn"
+          >
+            <span>disclaimer</span>
+          </button>
+
+          {/* Version info - Interactive link triggers Apple-style roadmap panel */}
+          <button
+            onClick={() => setModalOpen(true)}
+            className="text-[10px] text-zinc-600 hover:text-white transition-all bg-[#1c1c1e]/45 hover:bg-[#1c1c1e] px-2.5 py-1 rounded-lg border border-[#2c2c2e]/70 cursor-pointer flex items-center gap-1.5 lowercase"
+            id="version-trigger-btn"
+          >
+            <Sparkles className="w-3 h-3 text-[#34c759]" />
+            <span>version 1.1</span>
+          </button>
+        </div>
       </div>
+
+      {/* Developer Modal */}
+      <AnimatePresence>
+        {developerModalOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setDeveloperModalOpen(false)}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-md p-4 cursor-zoom-out"
+            id="developer-backdrop"
+          >
+            <motion.div
+              initial={{ scale: 0.94, opacity: 0, y: 15 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.94, opacity: 0, y: 15 }}
+              transition={{ type: "spring", stiffness: 380, damping: 30 }}
+              onClick={(e) => e.stopPropagation()}
+              className="relative w-full max-w-sm bg-[#1c1c1e] border border-[#2c2c2e] rounded-3xl p-6 md:p-7 space-y-6 text-left cursor-default shadow-2xl"
+              id="developer-dialog"
+            >
+              <div className="flex items-center justify-between border-b border-zinc-900 pb-3">
+                <div className="flex items-center gap-2">
+                  <Code className="w-4.5 h-4.5 text-[#0071e3]" />
+                  <h4 className="text-base font-bold text-white tracking-tight lowercase">
+                    about the dev
+                  </h4>
+                </div>
+                <button
+                  onClick={() => setDeveloperModalOpen(false)}
+                  className="text-zinc-500 hover:text-white p-1 rounded-full hover:bg-zinc-900 transition-colors cursor-pointer"
+                >
+                  <X className="w-4.5 h-4.5" />
+                </button>
+              </div>
+
+              <p className="text-sm text-zinc-350 leading-relaxed font-light lowercase">
+                kodewt is a dev that developed it.... but previously he developed 3 social medias that nobody used and he couldnt even learn on his mistakes.
+              </p>
+
+              <button
+                onClick={() => setDeveloperModalOpen(false)}
+                className="w-full bg-zinc-900 hover:bg-zinc-800 text-zinc-300 py-2.5 rounded-2xl text-xs font-medium cursor-pointer transition-colors border border-zinc-800 lowercase text-center"
+              >
+                done
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Disclaimer Modal */}
+      <AnimatePresence>
+        {disclaimerModalOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setDisclaimerModalOpen(false)}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-md p-4 cursor-zoom-out"
+            id="disclaimer-backdrop"
+          >
+            <motion.div
+              initial={{ scale: 0.94, opacity: 0, y: 15 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.94, opacity: 0, y: 15 }}
+              transition={{ type: "spring", stiffness: 380, damping: 30 }}
+              onClick={(e) => e.stopPropagation()}
+              className="relative w-full max-w-sm bg-[#1c1c1e] border border-[#2c2c2e] rounded-3xl p-6 md:p-7 space-y-6 text-left cursor-default shadow-2xl"
+              id="disclaimer-dialog"
+            >
+              <div className="flex items-center justify-between border-b border-zinc-900 pb-3">
+                <div className="flex items-center gap-2">
+                  <AlertCircle className="w-4.5 h-4.5 text-[#ff453a]" />
+                  <h4 className="text-base font-bold text-white tracking-tight lowercase">
+                    disclaimer
+                  </h4>
+                </div>
+                <button
+                  onClick={() => setDisclaimerModalOpen(false)}
+                  className="text-zinc-500 hover:text-white p-1 rounded-full hover:bg-zinc-900 transition-colors cursor-pointer"
+                >
+                  <X className="w-4.5 h-4.5" />
+                </button>
+              </div>
+
+              <p className="text-sm text-zinc-350 leading-relaxed font-light lowercase">
+                pics are taken from unsplash for test... sorry. and we are also working to add more countries but it's really hard because not all countries have open apis for medicines... hope u understand!!
+              </p>
+
+              <button
+                onClick={() => setDisclaimerModalOpen(false)}
+                className="w-full bg-zinc-900 hover:bg-zinc-800 text-zinc-300 py-2.5 rounded-2xl text-xs font-medium cursor-pointer transition-colors border border-zinc-800 lowercase text-center"
+              >
+                done
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Satisfying Apple-style Backdrop Sheet Modal */}
       <AnimatePresence>
